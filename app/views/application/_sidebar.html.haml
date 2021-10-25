@@ -1,0 +1,6 @@
+.hero-widget
+  #trendcatcher.trendcatcher
+    %iframe{:frameborder => "0", :height => "240px", :scrolling => "no", :src => "https://counter.social/trendcatcher/trendingtest.htm", :width => "100%"}
+
+  .hero-widget__text
+    %p= @instance_presenter.site_short_description.html_safe.presence || @instance_presenter.site_description.html_safe.presence || t('about.generic_description', domain: site_hostname)

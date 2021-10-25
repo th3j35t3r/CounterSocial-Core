@@ -1,0 +1,360 @@
+import React from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import PropTypes from 'prop-types';
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+import Button from 'mastodon/components/button';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { autoPlayGif, me, isStaff } from 'mastodon/initial_state';
+import classNames from 'classnames';
+import Icon from 'mastodon/components/icon';
+import Avatar from 'mastodon/components/avatar';
+import { shortNumberFormat } from 'mastodon/utils/numbers';
+import { NavLink } from 'react-router-dom';
+import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
+
+const messages = defineMessages({
+  unfollow: { id: 'account.unfollow', defaultMessage: 'Unfollow' },
+  follow: { id: 'account.follow', defaultMessage: 'Follow' },
+  requested: { id: 'account.requested', defaultMessage: 'Awaiting approval. Click to cancel follow request' },
+  unblock: { id: 'account.unblock', defaultMessage: 'Unblock @{name}' },
+  edit_profile: { id: 'account.edit_profile', defaultMessage: 'Edit profile' },
+  linkVerifiedOn: { id: 'account.link_verified_on', defaultMessage: 'Ownership of this link was checked on {date}' },
+  account_locked: { id: 'account.locked_info', defaultMessage: 'This account privacy status is set to locked. The owner manually reviews who can follow them.' },
+  mention: { id: 'account.mention', defaultMessage: 'Mention @{name}' },
+  direct: { id: 'account.direct', defaultMessage: 'Direct message @{name}' },
+  unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
+  block: { id: 'account.block', defaultMessage: 'Block @{name}' },
+  mute: { id: 'account.mute', defaultMessage: 'Mute @{name}' },
+  report: { id: 'account.report', defaultMessage: 'Report @{name}' },
+  share: { id: 'account.share', defaultMessage: 'Share @{name}\'s profile' },
+  media: { id: 'account.media', defaultMessage: 'Media' },
+  blockDomain: { id: 'account.block_domain', defaultMessage: 'Hide everything from {domain}' },
+  unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unhide {domain}' },
+  hideReblogs: { id: 'account.hide_reblogs', defaultMessage: 'Hide boosts from @{name}' },
+  showReblogs: { id: 'account.show_reblogs', defaultMessage: 'Show boosts from @{name}' },
+  pins: { id: 'navigation_bar.pins', defaultMessage: 'Pinned toots' },
+  preferences: { id: 'navigation_bar.preferences', defaultMessage: 'Preferences' },
+  follow_requests: { id: 'navigation_bar.follow_requests', defaultMessage: 'Follow requests' },
+  favourites: { id: 'navigation_bar.favourites', defaultMessage: 'Favourites' },
+  lists: { id: 'navigation_bar.lists', defaultMessage: 'Lists' },
+  blocks: { id: 'navigation_bar.blocks', defaultMessage: 'Blocked users' },
+  domain_blocks: { id: 'navigation_bar.domain_blocks', defaultMessage: 'Hidden domains' },
+  mutes: { id: 'navigation_bar.mutes', defaultMessage: 'Muted users' },
+  endorse: { id: 'account.endorse', defaultMessage: 'Feature on profile' },
+  unendorse: { id: 'account.unendorse', defaultMessage: 'Don\'t feature on profile' },
+  add_or_remove_from_list: { id: 'account.add_or_remove_from_list', defaultMessage: 'Add or Remove from lists' },
+  admin_account: { id: 'status.admin_account', defaultMessage: 'Open moderation interface for @{name}' },
+});
+
+const dateFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour12: false,
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+export default @injectIntl
+class Header extends ImmutablePureComponent {
+
+  static propTypes = {
+    account: ImmutablePropTypes.map,
+    identity_props: ImmutablePropTypes.list,
+    onFollow: PropTypes.func.isRequired,
+    onBlock: PropTypes.func.isRequired,
+    intl: PropTypes.object.isRequired,
+    domain: PropTypes.string.isRequired,
+  };
+
+  openEditProfile = () => {
+    window.open('/settings/profile', '_blank');
+  }
+
+  isStatusesPageActive = (match, location) => {
+    if (!match) {
+      return false;
+    }
+
+    return !location.pathname.match(/\/(followers|following)\/?$/);
+  }
+
+  render () {
+    const { account, intl, domain, identity_proofs } = this.props;
+
+    if (!account) {
+      return null;
+    }
+
+    let info        = [];
+    let actionBtn   = '';
+    let lockedIcon  = '';
+    let menu        = [];
+    
+    function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+      var c = ca[i];
+      while (c.charAt(0) === ' ') {
+        c = c.substring(1,c.length);
+      }
+      if (c.indexOf(nameEQ) === 0) {
+        return c.substring(nameEQ.length,c.length);
+      }
+    }
+    return null;
+  }
+
+  function createCookie(name, value, days) {
+    var expires;
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime()+(days*24*60*60*1000));
+      expires = "; expires="+date.toGMTString();
+    }
+    else {
+      expires = "";
+    }
+    document.cookie = name+"="+value+expires+"; path=/; secure";
+  }
+
+  function eraseCookie(name) {
+    createCookie(name,"",-1);
+  }
+
+    let psession = readCookie("psession");
+    let myemail = readCookie("useremail");
+    let myusername = account.get('acct');
+    let CurrAccColumn = account.get('acct');
+    let cosoguardurl = "https://counter.social/cosoguard/report.php";
+    let cosobadgeurl = "https://counter.social/badges/accbadge.php";
+    let cosoverifiedurl = "https://counter.social/badges/verifiedbadge.php";
+    
+    createCookie("CurrAccColumn", CurrAccColumn, 9999);
+    
+    
+      if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+           
+  
+      if (me == account.get('id')) {
+      info = <span className='account--follows-info'><span className='account__header__content'><a href={cosoguardurl} target="_blank"><i className='fa fa-vcard' alt='COSOGUARD IDENTITY ALERTS' title='COSOGUARD IDENTITY ALERTS' /></a></span></span>;
+      //info = <span className='account--follows-info'><a href="https://counter.social" target="_blank"><IconButton size={26} icon="fa fa-vcard" title="COSOGUARD" /></a></span>;
+      createCookie("framepopurl", cosoguardurl, 9999); 
+      //createCookie("username", myusername, 9999); 
+  }
+  
+  }else{
+    
+     if (me == account.get('id')) {
+       info = <span className='account--follows-info'><span className='account__header__content'><a href="#" onClick={CosoGuardFramePop}><i className='fa fa-vcard' alt='COSOGUARD IDENTITY ALERTS' title='COSOGUARD IDENTITY ALERTS' /></a></span></span>;
+       //info = <span className='account--follows-info'><a href="https://counter.social" target="_blank"><IconButton size={26} icon="fa fa-vcard" title="COSOGUARD" /></a></span>;
+       createCookie("framepopurl", cosoguardurl, 9999); 
+       //createCookie("username", myusername, 9999); 
+       
+    }
+    
+}
+
+
+
+
+    if (me !== account.get('id') && account.getIn(['relationship', 'followed_by'])) {
+      info.push(<span key='followed_by' className='relationship-tag'><FormattedMessage id='account.follows_you' defaultMessage='Follows you' /></span>);
+    } else if (me !== account.get('id') && account.getIn(['relationship', 'blocking'])) {
+      info.push(<span key='blocked' className='relationship-tag'><FormattedMessage id='account.blocked' defaultMessage='Blocked' /></span>);
+    }
+
+    if (me !== account.get('id') && account.getIn(['relationship', 'muting'])) {
+      info.push(<span key='muted' className='relationship-tag'><FormattedMessage id='account.muted' defaultMessage='Muted' /></span>);
+    } else if (me !== account.get('id') && account.getIn(['relationship', 'domain_blocking'])) {
+      info.push(<span key='domain_blocked' className='relationship-tag'><FormattedMessage id='account.domain_blocked' defaultMessage='Domain hidden' /></span>);
+    }
+
+    if (me !== account.get('id')) {
+      if (!account.get('relationship')) { // Wait until the relationship is loaded
+        actionBtn = '';
+      } else if (account.getIn(['relationship', 'requested'])) {
+        actionBtn = <Button className='logo-button' text={intl.formatMessage(messages.requested)} onClick={this.props.onFollow} />;
+      } else if (!account.getIn(['relationship', 'blocking'])) {
+        actionBtn = <Button disabled={account.getIn(['relationship', 'blocked_by'])} className={classNames('logo-button', { 'button--destructive': account.getIn(['relationship', 'following']) })} text={intl.formatMessage(account.getIn(['relationship', 'following']) ? messages.unfollow : messages.follow)} onClick={this.props.onFollow} />;
+      } else if (account.getIn(['relationship', 'blocking'])) {
+        actionBtn = <Button className='logo-button' text={intl.formatMessage(messages.unblock, { name: account.get('username') })} onClick={this.props.onBlock} />;
+      }
+    } else {
+      actionBtn = <Button className='logo-button' text={intl.formatMessage(messages.edit_profile)} onClick={this.openEditProfile} />;
+    }
+
+    if (account.get('moved') && !account.getIn(['relationship', 'following'])) {
+      actionBtn = '';
+    }
+
+    if (account.get('locked')) {
+      lockedIcon = <Icon id='lock' title={intl.formatMessage(messages.account_locked)} />;
+    }
+
+    if (account.get('id') !== me) {
+      menu.push({ text: intl.formatMessage(messages.mention, { name: account.get('username') }), action: this.props.onMention });
+      if (psession == "1"){
+      menu.push({ text: intl.formatMessage(messages.direct, { name: account.get('username') }), action: this.props.onDirect });
+      } 
+      menu.push(null);
+    }
+
+    if ('share' in navigator) {
+      menu.push({ text: intl.formatMessage(messages.share, { name: account.get('username') }), action: this.handleShare });
+      menu.push(null);
+    }
+
+    if (account.get('id') === me) {
+      menu.push({ text: intl.formatMessage(messages.edit_profile), href: '/settings/profile' });
+      menu.push({ text: intl.formatMessage(messages.preferences), href: '/settings/preferences' });
+      menu.push({ text: intl.formatMessage(messages.pins), to: '/pinned' });
+      menu.push(null);
+      menu.push({ text: intl.formatMessage(messages.follow_requests), to: '/follow_requests' });
+      menu.push({ text: intl.formatMessage(messages.lists), to: '/lists' });
+      menu.push(null);
+      menu.push({ text: intl.formatMessage(messages.mutes), to: '/mutes' });
+      menu.push({ text: intl.formatMessage(messages.blocks), to: '/blocks' });
+      menu.push({ text: intl.formatMessage(messages.domain_blocks), to: '/domain_blocks' });
+    } else {
+      if (account.getIn(['relationship', 'following'])) {
+        if (account.getIn(['relationship', 'showing_reblogs'])) {
+          menu.push({ text: intl.formatMessage(messages.hideReblogs, { name: account.get('username') }), action: this.props.onReblogToggle });
+        } else {
+          menu.push({ text: intl.formatMessage(messages.showReblogs, { name: account.get('username') }), action: this.props.onReblogToggle });
+        }
+
+        
+        menu.push({ text: intl.formatMessage(messages.add_or_remove_from_list), action: this.props.onAddToList });
+        menu.push(null);
+      }
+
+      if (account.getIn(['relationship', 'muting'])) {
+        menu.push({ text: intl.formatMessage(messages.unmute, { name: account.get('username') }), action: this.props.onMute });
+      } else {
+        menu.push({ text: intl.formatMessage(messages.mute, { name: account.get('username') }), action: this.props.onMute });
+      }
+
+      if (account.getIn(['relationship', 'blocking'])) {
+        menu.push({ text: intl.formatMessage(messages.unblock, { name: account.get('username') }), action: this.props.onBlock });
+      } else {
+        menu.push({ text: intl.formatMessage(messages.block, { name: account.get('username') }), action: this.props.onBlock });
+      }
+
+      menu.push({ text: intl.formatMessage(messages.report, { name: account.get('username') }), action: this.props.onReport });
+    }
+
+    if (account.get('acct') !== account.get('username')) {
+      const domain = account.get('acct').split('@')[1];
+
+      menu.push(null);
+
+      if (account.getIn(['relationship', 'domain_blocking'])) {
+        menu.push({ text: intl.formatMessage(messages.unblockDomain, { domain }), action: this.props.onUnblockDomain });
+      } else {
+        menu.push({ text: intl.formatMessage(messages.blockDomain, { domain }), action: this.props.onBlockDomain });
+      }
+    }
+
+    if (account.get('id') !== me && isStaff) {
+      menu.push(null);
+      menu.push({ text: intl.formatMessage(messages.admin_account, { name: account.get('username') }), href: `/admin/accounts/${account.get('id')}` });
+    }
+
+    const content         = { __html: account.get('note_emojified') };
+    const displayNameHtml = { __html: account.get('display_name_html') };
+    const fields          = account.get('fields');
+    const badge           = account.get('bot') ? (<div className='account-role bot'><FormattedMessage id='account.badges.bot' defaultMessage='Bot' /></div>) : null;
+    const acct            = account.get('acct');
+
+    return (
+
+    <div class='notranslate'>
+
+      <div className={classNames('account__header', { inactive: !!account.get('moved') })}>
+        <div className='account__header__image'>
+          <div className='account__header__info'>
+            {info}
+          </div>
+
+          <img src={autoPlayGif ? account.get('header') : account.get('header_static')} alt='' className='parallax' />
+        </div>
+
+        <div className='account__header__bar'>
+          <div className='account__header__tabs'>
+            <a className='avatar'>
+              <Avatar account={account} size={90} />
+            </a>
+
+            <div className='spacer' />
+
+            <div className='account__header__tabs__buttons'>
+              {actionBtn}
+
+              <DropdownMenuContainer items={menu} icon='ellipsis-v' size={24} direction='right' />
+            </div>
+          </div>
+
+          <div className='account__header__tabs__name'>
+            <h1>
+              
+              <span dangerouslySetInnerHTML={displayNameHtml} /> {badge} <iframe class="verifiedbadge" src={cosoverifiedurl} height="16" width="16" frameborder="0" scrolling="no"></iframe>
+              <div><iframe src={cosobadgeurl} height="25" width="132" frameborder="0" scrolling="no"></iframe><iframe src='https://counter.social/badges/plpbadge.php' height="25" width="132" frameborder="0" scrolling="no"></iframe></div>
+              <small>@{acct} {lockedIcon}</small>
+            </h1>
+          </div>
+
+          <div className='account__header__extra'>
+          </div>
+            <div className='account__header__bio'>
+              { (fields.size > 0 || identity_proofs.size > 0) && (
+                <div className='account__header__fields'>
+                  {identity_proofs.map((proof, i) => (
+                    <dl key={i}>
+                      <dt dangerouslySetInnerHTML={{ __html: proof.get('provider') }} />
+
+                      <dd className='verified'>
+                        <a href={proof.get('proof_url')} target='_blank' rel='noopener'><span title={intl.formatMessage(messages.linkVerifiedOn, { date: intl.formatDate(proof.get('updated_at'), dateFormatOptions) })}>
+                          <Icon id='check' className='verified__mark' />
+                        </span></a>
+                        <a href={proof.get('profile_url')} target='_blank' rel='noopener'><span dangerouslySetInnerHTML={{ __html: ' '+proof.get('provider_username') }} /></a>
+                      </dd>
+                    </dl>
+                  ))}
+                  {fields.map((pair, i) => (
+                    <dl key={i}>
+                      <dt dangerouslySetInnerHTML={{ __html: pair.get('name_emojified') }} title={pair.get('name')} />
+
+                      <dd className={pair.get('verified_at') && 'verified'} title={pair.get('value_plain')}>
+                        {pair.get('verified_at') && <span title={intl.formatMessage(messages.linkVerifiedOn, { date: intl.formatDate(pair.get('verified_at'), dateFormatOptions) })}><Icon id='check' className='verified__mark' /></span>} <span dangerouslySetInnerHTML={{ __html: pair.get('value_emojified') }} />
+                      </dd>
+                    </dl>
+                  ))}
+                </div>
+              )}
+
+              {account.get('note').length > 0 && account.get('note') !== '<p></p>' && <div className='account__header__content' dangerouslySetInnerHTML={content} />}
+            </div>
+
+            <div className='account__header__extra__links'>
+              <NavLink isActive={this.isStatusesPageActive} activeClassName='active' to={`/accounts/${account.get('id')}`} title={intl.formatNumber(account.get('statuses_count'))}>
+                <strong>{shortNumberFormat(account.get('statuses_count'))}</strong> <FormattedMessage id='account.posts' defaultMessage='Toots' />
+              </NavLink>
+
+              <NavLink exact activeClassName='active' to={`/accounts/${account.get('id')}/following`} title={intl.formatNumber(account.get('following_count'))}>
+                <strong>{shortNumberFormat(account.get('following_count'))}</strong> <FormattedMessage id='account.follows' defaultMessage='Follows' />
+              </NavLink>
+
+              <NavLink exact activeClassName='active' to={`/accounts/${account.get('id')}/followers`} title={intl.formatNumber(account.get('followers_count'))}>
+                <strong>{shortNumberFormat(account.get('followers_count'))}</strong> <FormattedMessage id='account.followers' defaultMessage='Followers' />
+              </NavLink>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    );
+  }
+
+}

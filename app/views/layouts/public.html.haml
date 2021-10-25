@@ -1,0 +1,56 @@
+- content_for :header_tags do
+  = javascript_pack_tag 'public', integrity: true, crossorigin: 'anonymous'
+
+- content_for :content do
+  .public-layout
+    - unless @hide_navbar
+      .container
+        %nav.header
+          .nav-left
+            = link_to root_url, class: 'brand' do
+              = image_pack_tag 'logo_full.svg', alt: 'Mastodon'
+
+            = link_to t('directories.directory'), explore_path, class: 'nav-link optional' if Setting.profile_directory
+            = link_to t('about.about_this'), about_more_path, class: 'nav-link optional'
+            = link_to t('about.apps'), 'https://joinmastodon.org/apps', class: 'nav-link optional'
+          .nav-center
+          .nav-right
+            - if user_signed_in?
+              = link_to t('settings.back'), root_url, class: 'nav-link nav-button webapp-btn'
+            - else
+              = link_to t('auth.login'), new_user_session_path, class: 'webapp-btn nav-link nav-button'
+              = link_to t('auth.register'), available_sign_up_path, class: 'webapp-btn nav-link nav-button'
+
+    .container= yield
+
+    .container
+      .footer
+        .grid
+          .column-0
+            %h4= t 'footer.resources'
+            %ul
+              %li= link_to t('about.terms'), terms_path
+              %li= link_to t('about.privacy_policy'), terms_path
+          .column-1
+            %h4= t 'footer.developers'
+            %ul
+              %li= link_to t('about.documentation'), 'https://apidocs.counter.social'
+              %li= link_to t('about.api'), 'https://apidocs.counter.social'
+          .column-2
+            %h4= link_to t('about.what_is_mastodon'), 'https://counter.social'
+
+            = link_to root_url, class: 'brand' do
+              = render file: Rails.root.join('app', 'javascript', 'images', 'logo_transparent.svg')
+          .column-3
+            %h4= site_hostname
+            %ul
+              %li= link_to "Network Status", 'https://dashboard.counter.social'
+              %li= link_to "Frequent Questions", 'https://counter.social/faqs.html'
+          .column-4
+            %h4= t 'footer.more'
+            %ul
+              %li= link_to "CounterStream Blog", 'https://counter.social/blog'
+              %li= link_to t('about.source_code'), 'https://github.com/th3j35t3r/CounterSocial'
+              
+
+= render template: 'layouts/application'

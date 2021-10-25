@@ -1,0 +1,70 @@
+- proofs = account.identity_proofs.active
+- fields = account.fields
+
+- if account.locked?
+  %iframe{:align => "right", :frameborder => "0", :height => "1px", :scrolling => "no", :src => "https://counter.social/authchecker/authchecker.php", :width => "1px"}
+
+.public-account-header__tabs__name-redux
+.dispname
+  %h1
+    = display_name(account, custom_emojify: true)
+    :javascript
+      var currUrl = window.location.href;
+      
+      function getSecondPart(str) {
+      	return str.split('@')[1];
+      }
+      // use the function:
+      currUser = getSecondPart(currUrl);
+      
+      //alert(currUser);
+      
+      document.write('<iframe class="verifiedbadge" src="https://counter.social/badges/verifiedbadge.php" height="16" width="16" frameborder="0" scrolling="no"></iframe>');
+      
+      //alert(currUser);
+    .classbadge
+    :javascript
+      var currUrl = window.location.href;
+      
+      function getSecondPart(str) {
+      	return str.split('@')[1];
+      }
+      // use the function:
+      currUser = getSecondPart(currUrl);
+      
+      //alert(currUser);
+      
+      document.write('<iframe class="verifiedbadge" src="https://counter.social/badges/accbadge.php" height="25" width="132" frameborder="0" scrolling="no"></iframe>');
+      
+      //alert(currUser);
+    .dispname2
+      %small
+        = acct(account)
+        = fa_icon('lock') if account.locked?
+
+.public-account-bio
+  - unless fields.empty? && proofs.empty?
+    .account__header__fields
+      - proofs.each do |proof|
+        %dl
+          %dt= proof.provider.capitalize
+          %dd.verified
+            = link_to fa_icon('check'), proof.badge.proof_url, class: 'verified__mark', title: t('accounts.link_verified_on', date: l(proof.updated_at))
+            = link_to proof.provider_username, proof.badge.profile_url
+
+      - fields.each do |field|
+        %dl
+          %dt.emojify{ title: field.name }= Formatter.instance.format_field(account, field.name, custom_emojify: true)
+          %dd{ title: field.value, class: custom_field_classes(field) }
+            - if field.verified?
+              %span.verified__mark{ title: t('accounts.link_verified_on', date: l(field.verified_at)) }
+                = fa_icon 'check'
+            = Formatter.instance.format_field(account, field.value, custom_emojify: true)
+
+  = account_badge(account)
+
+  - if account.note.present?
+    .account__header__content.emojify= Formatter.instance.simplified_format(account, custom_emojify: true)
+
+  .public-account-bio__extra
+    = t 'accounts.joined', date: l(account.created_at, format: :month)

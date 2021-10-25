@@ -1,0 +1,65 @@
+- content_for :page_title do
+  = t('auth.register')
+
+- content_for :header_tags do
+  = render partial: 'shared/og'
+
+%script{:src => "https://counter.social/readwrite.js"}
+%script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+
+#translator-annex
+  :javascript
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({ pageLanguage: "en" }, "google_translate_element");
+    };
+    
+    $(function () {
+      
+        $.getScript("https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+    });
+
+#registerwarning.registerwarning{:align => "center"} You are registering a NEW account.
+#registerwarning.registerwarning{:align => "center"}
+  If you already have an account
+  %a{:href => "https://counter.social/auth/sign_in"}
+    %strong LOGIN
+\ 
+\
+
+
+= simple_form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
+  = render 'shared/error_messages', object: resource
+
+
+  - if @invite.present? && @invite.autofollow?
+    .fields-group{ style: 'margin-bottom: 30px' }
+      %p.hint{ style: 'text-align: center' }= t('invites.invited_by')
+      = render 'application/card', account: @invite.user.account
+
+  = f.simple_fields_for :account do |ff|
+    .fields-group
+      = ff.input :username, wrapper: :with_label, autofocus: true, label: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label' => t('simple_form.labels.defaults.username'), :autocomplete => 'off' }, append: "@#{site_hostname}", hint: t('simple_form.hints.defaults.username', domain: site_hostname)
+
+  .fields-group
+    = f.input :email, wrapper: :with_label, label: t('simple_form.labels.defaults.email'), required: true, input_html: { 'aria-label' => t('simple_form.labels.defaults.email'), :autocomplete => 'off' }
+
+  .fields-group
+    = f.input :password, wrapper: :with_label, label: t('simple_form.labels.defaults.password'), required: true, input_html: { 'aria-label' => t('simple_form.labels.defaults.password'), :autocomplete => 'off' }
+
+  .fields-group
+    = f.input :password_confirmation, wrapper: :with_label, label: t('simple_form.labels.defaults.confirm_password'), required: true, input_html: { 'aria-label' => t('simple_form.labels.defaults.confirm_password'), :autocomplete => 'off' }
+
+  - if approved_registrations? && !@invite.present?
+    .fields-group
+      = f.simple_fields_for :invite_request do |invite_request_fields|
+        = invite_request_fields.input :text, as: :text, wrapper: :with_block_label, required: false
+
+  = f.input :invite_code, as: :hidden
+
+  .fields-group
+    = f.input :agreement, as: :boolean, wrapper: :with_label, label: t('auth.checkbox_agreement_html', rules_path: about_more_path, terms_path: terms_path)
+
+  .actions
+    = f.button :button, sign_up_message, type: :submit
+
+.form-footer= render 'auth/shared/links'

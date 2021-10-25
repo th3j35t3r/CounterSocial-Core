@@ -1,0 +1,33 @@
+- content_for :header_tags do
+  = javascript_pack_tag 'public', integrity: true, crossorigin: 'anonymous'
+  %script{:src => "https://counter.social/readwrite.js"}
+  %script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+
+
+- content_for :content do
+  #translator-annex
+  :javascript
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+    };
+    
+    $(function () {
+      
+        $.getScript("https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+    });
+  .admin-wrapper
+    .sidebar-wrapper
+      .sidebar
+        = link_to root_path do
+          = image_pack_tag 'logo.svg', class: 'logo', alt: 'CounterSocial'
+
+        = render_navigation
+    .content-wrapper
+      .content
+        %h2= yield :page_title
+
+        = render 'application/flashes'
+
+        = yield
+
+= render template: 'layouts/application'

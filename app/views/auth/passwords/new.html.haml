@@ -1,0 +1,27 @@
+- content_for :page_title do
+  = t('auth.reset_password')
+
+%script{:src => "https://counter.social/readwrite.js"}
+%script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+
+#translator-annex
+  :javascript
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({ pageLanguage: "en" }, "google_translate_element");
+    };
+    
+    $(function () {
+      
+        $.getScript("https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+    });
+
+= simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+  = render 'shared/error_messages', object: resource
+
+  .fields-group
+    = f.input :email, autofocus: true, wrapper: :with_label, label: t('simple_form.labels.defaults.email'), input_html: { 'aria-label' => t('simple_form.labels.defaults.email') }, hint: false
+
+  .actions
+    = f.button :button, t('auth.reset_password'), type: :submit
+
+.form-footer= render 'auth/shared/links'

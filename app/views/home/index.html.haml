@@ -1,0 +1,130 @@
+- content_for :header_tags do
+  %meta{:content => "kDJejw3Xr73iu8DXn3fWuXnUm", :name => "cf-2fa-verify"}/
+  -#%script{:src => "https://counter.social/peeler/custom.jquery.min.js", :type => "text/javascript"}
+  %link{:href => "https://counter.social/peeler/pagepeel.packed.css", :rel => "stylesheet", :type => "text/css"}/
+  %link{:href => "https://counter.social/peeler/new.css", :rel => "stylesheet", :type => "text/css"}/
+  %link{:href => "https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&display=swap", :rel => "stylesheet"}/
+  %script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+  %script{:src => "https://counter.social/preloadbanner.js"}
+  %script{:src => "https://counter.social/readwrite.js"}
+
+  %script{:src => "https://counter.social/cipherservices/crypto-js.js"}
+  %script{:src => "https://counter.social/cipherservices/encryption.js"}
+
+
+  %script{:src => "https://counter.social/jivo.js"}
+  
+
+  %link{:href => "https://fonts.googleapis.com/css?family=Droid+Sans:400,700|Droid+Serif", :rel => "stylesheet", :type => "text/css"}
+  %link{:href => "https://counter.social/entropy/topbar/css/style.css", :rel => "stylesheet"}
+
+  %link{:href => "https://counter.social/tickerstuff/ticker-page-styles.css", :rel => "stylesheet"}
+  %link{:href => "https://counter.social/tickerstuff/breaking-news-ticker.css", :rel => "stylesheet"}
+  %link{:href => "https://fonts.googleapis.com/css?family=Poppins:400,700", :rel => "stylesheet", :type => "text/css"}
+
+  %script{:src => "https://counter.social/stripped_elements.js"}
+
+
+
+  = preload_link_tag asset_pack_path('features/getting_started.js'), crossorigin: 'anonymous'
+  = preload_link_tag asset_pack_path('features/compose.js'), crossorigin: 'anonymous'
+  = preload_link_tag asset_pack_path('features/home_timeline.js'), crossorigin: 'anonymous'
+  = preload_link_tag asset_pack_path('features/notifications.js'), crossorigin: 'anonymous'
+
+  %meta{name: 'applicationServerKey', content: Rails.configuration.x.vapid_public_key}
+  %script#initial-state{ type: 'application/json' }!= json_escape(@initial_state_json)
+
+  = javascript_pack_tag 'application', integrity: true, crossorigin: 'anonymous'
+
+#translator-annex
+  :javascript
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({ pageLanguage: "en" }, "google_translate_element");
+    };
+
+    $(function () {
+      
+        $.getScript("https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+    });
+
+
+
+
+%script{:src => "https://counter.social/mobile-landing/agentcheck.js"}  
+
+
+%main.cd-main-content
+
+  %section.demo-section-box
+    .section-container
+      .demo-box
+        #newsTicker4.breaking-news-ticker
+          .bn-news
+            %ul
+              %li
+                %span.bn-loader-text Data loading...
+          .bn-controls
+            %button
+              %span.bn-arrow.bn-prev
+            %button
+              %span.bn-action
+            %button
+              %span.bn-arrow.bn-next
+  %script{:src => "https://counter.social/tickerstuff/breaking-news-ticker.js"}
+  %script{:src => "https://counter.social/tickerstuff/ticker.js"}
+
+  
+
+
+
+.app-holder#mastodon{ data: { props: Oj.dump(default_props) } }
+  %script{:src => "https://counter.social/CustomScripts/cfjquery.js", :type => "text/javascript"}
+%script{:src => "https://counter.social/CustomStuff/sliderlibs/jquery.tabSlideOut.v1.3.js"}
+
+
+
+-#%script{:src => "https://counter.social/homescripts/test.js", :type => "text/javascript"}
+
+
+-# peeler start
+
+%script{:src => "https://counter.social/peeler/pagepeel-jquery.js", :type => "text/javascript"}
+
+%script{:src => "https://counter.social/CustomScripts/view_home1.js", :type => "text/javascript"}
+
+
+
+  
+  
+  
+
+
+
+
+#slide-out-div.slide-out-div{:style => "padding: 20px; margin-bottom: 0px; width: 290px; background: #191b22; z-index:5; display: none;"}
+  %a.handle Content
+  %iframe{:align => "center", :frameborder => "0", :height => "400px", :scrolling => "no", :src => "https://counter.social/CustomStuff/sliderlibs/sliderframes/master.html", :width => "100%"}
+  
+#slide-out-div2.slide-out-div2{:style => "padding: 0px; margin-bottom: 0px; width: 382px; background: #191b22; z-index:5; display: none;"}
+  %a.handle2 Content
+  %iframe{:align => "center", :frameborder => "0", :height => "400px", :scrolling => "no", :src => "https://counter.social/CustomStuff/sliderlibs/sliderframes/supportpro.html", :width => "100%"}
+  
+  %script{:src => "https://counter.social/CustomScripts/view_home2.js", :type => "text/javascript"}  
+
+#storeusercontainer{:style => "position:absolute; width:1px; height:0px; z-index:-5; left: 10px; top: 5px;"}
+  %script{:src => "https://counter.social/CustomScripts/view_home2.5.js", :type => "text/javascript"} 
+
+%script{:src => "https://counter.social/CustomScripts/introhandler.js", :type => "text/javascript"}
+
+#myModal.modal
+  .modal-content
+    %span.close{:onclick => "xbutton()"}
+      %strong CLOSE ×
+    %div{:align => "center>"} 
+    %iframe#framepop.framepop{:frameborder => "0", :height => "690", :scrolling => "yes", :src => "https://counter.social/CustomStuff/framepop-interim.htm", :width => "990"}
+    %iframe#idalerts.idalerts{:frameborder => "0", :height => "0", :scrolling => "no", :src => "https://counter.social/cosoguard/TootoPHP/backgroundalerts.php", :width => "0"}
+    %script{:src => "https://counter.social/CustomScripts/view_home3.js", :type => "text/javascript"} 
+
+
+
+
